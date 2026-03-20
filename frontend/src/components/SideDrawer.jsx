@@ -61,15 +61,15 @@ const SideDrawer = ({ isOpen, onClose }) => {
 
       {/* ══ DRAWER — navbar ke bilkul neeche se ══ */}
       <div
-        className="fixed right-0 bottom-0 z-50 bg-white flex flex-col w-[85%] sm:w-[70%] md:w-[45%] lg:w-[38%]"
+          className="fixed right-0 bottom-0 z-50 bg-white flex flex-col w-[85%] sm:w-[70%] md:w-[45%] lg:w-[38%]"
         style={{
-          top: `${navbarHeight}px`,
-          boxShadow: "-8px 0 40px rgba(0,0,0,0.15)",
-          transform: isOpen ? "translateX(0)" : "translateX(100%)",
-          transition: "transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
-          willChange: "transform",
-        }}
-      >
+        top: `${navbarHeight}px`,
+        boxShadow: "-8px 0 40px rgba(0,0,0,0.15)",
+        transform: isOpen ? "translateX(0)" : "translateX(100%)",
+        transition: "transform 0.6s cubic-bezier(0.77,0,0.175,1)",
+        willChange: "transform",
+  }}
+>
         {/* Close Button */}
         {/* <div className="flex justify-end px-5 py-3 border-b border-gray-100">
           <button

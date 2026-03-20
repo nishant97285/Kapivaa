@@ -6,7 +6,6 @@ import WhyKapiva from "../components/WhyKapiva";
 import Footer from "../components/Footer";
 import NewArrivals from "../components/NewArrivalsComponent";
 import LearnAyurveda from "../components/LearnAyurveda";
-// import Dashboard from "./Dashboard";
 
 const Home = () => {
   const [activeCategory, setActiveCategory] = useState("Gym Foods");
@@ -23,7 +22,6 @@ const Home = () => {
       <NewArrivals />
       <LearnAyurveda />
       <Footer />
-      {/* <Dashboard /> */}
     </div>
   );
 };

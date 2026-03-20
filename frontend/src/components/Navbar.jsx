@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom"; 
+import { Link, useLocation } from "react-router-dom"; 
 import { useScroll } from "../hooks/useScroll";
 import SideDrawer from "./SideDrawer";
 
@@ -21,6 +21,9 @@ const mobileCategories = [
 ];
 
 const Navbar = () => {
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [bannerVisible, setBannerVisible] = useState(true);
@@ -73,38 +76,39 @@ const Navbar = () => {
 
         {/* MOBILE NAVBAR */}
         <div className="md:hidden">
+          {/* Top Row: Hamburger + Brand + Icons */}
           <div className="flex items-center justify-between px-3 py-3">
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="flex flex-col gap-1.5 p-1"
-            >
-              <span
-                className={`block w-5 h-0.5 bg-gray-700 transition-all duration-300 ${
-                  menuOpen ? "rotate-45 translate-y-2" : ""
-                }`}
-              />
-              <span
-                className={`block w-5 h-0.5 bg-gray-700 transition-all duration-300 ${
-                  menuOpen ? "opacity-0" : ""
-                }`}
-              />
-              <span
-                className={`block w-5 h-0.5 bg-gray-700 transition-all duration-300 ${
-                  menuOpen ? "-rotate-45 -translate-y-2" : ""
-                }`}
-              />
-            </button>
+           {/* Hamburger Button */}
+<button
+  onClick={() => setMenuOpen(!menuOpen)}
+  className="flex flex-col gap-1.5 p-1"
+>
+  <span
+    className={`block w-5 h-0.5 bg-gray-700 transform transition-all duration-600 ease-out ${
+      menuOpen ? "rotate-45 translate-y-2" : ""
+    }`}
+  />
+  <span
+    className={`block w-5 h-0.5 bg-gray-700 transform transition-all duration-600 ease-out ${
+      menuOpen ? "opacity-0" : ""
+    }`}
+  />
+  <span
+    className={`block w-5 h-0.5 bg-gray-700 transform transition-all duration-600 ease-out ${
+      menuOpen ? "-rotate-45 -translate-y-2" : ""
+    }`}
+  />
+</button>
 
             <div className="bg-black text-white font-black text-base px-3 py-1.5 tracking-widest rounded">
-              KAPIVA
+             <Link to="/">KAPIVA</Link>
             </div>
 
             <div className="flex items-center gap-1">
               <button className="text-gray-700 text-xl p-1.5">🔍</button>
               <button className="text-gray-700 text-xl p-1.5">🚚</button>
-              {/* Mobile Login icon */}
               <Link
-                to="/login"
+                to="/dashboard"
                 className="text-gray-700 text-xl p-1.5"
                 title="Login"
               >
@@ -119,46 +123,52 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Row 2 & Row 3 same as original */}
-          <div className="flex items-center justify-between px-3 pb-2 border-b border-gray-100">
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm">📍</span>
-              <div>
-                <p className="font-semibold text-gray-800 text-xs">
-                  140119, Chandigarh
-                </p>
-                <p className="text-gray-500 text-[11px]">
-                  Verify pincode for accurate delivery
-                </p>
-              </div>
-            </div>
-            <button className="border border-gray-400 text-gray-700 text-xs font-semibold px-3 py-1 rounded-md hover:bg-gray-50">
-              Edit ›
-            </button>
-          </div>
-
-          <div className="flex items-center overflow-x-auto scrollbar-hide px-7 py-2 gap-2">
-            {mobileCategories.map((cat, index) => (
-              <div key={cat.label} className="flex items-center shrink-0">
-                <div className="flex flex-col items-center gap-1 cursor-pointer">
-                  <div className="w-12 h-10 bg-gray-100 overflow-hidden flex items-center justify-center border border-gray-200 rounded-full">
-                    <img
-                      src={cat.icon}
-                      alt={cat.label}
-                      className="w-full h-full object-cover"
-                    />
+          {/* ONLY SHOW LOCATION & MOBILE CATEGORIES ON HOMEPAGE */}
+          {isHomePage && (
+            <>
+              {/* LOCATION ROW */}
+              <div className="flex items-center justify-between px-3 pb-2 border-b border-gray-100">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm">📍</span>
+                  <div>
+                    <p className="font-semibold text-gray-800 text-xs">
+                      140119, Chandigarh
+                    </p>
+                    <p className="text-gray-500 text-[11px]">
+                      Verify pincode for accurate delivery
+                    </p>
                   </div>
-                  <span className="text-[10px] text-gray-600 font-medium whitespace-nowrap">
-                    {cat.label}
-                  </span>
                 </div>
-                {index !== mobileCategories.length - 1 && (
-                  <div className="mx-3 h-13 w-[1px] bg-gray-400"></div>
-                )}
+                <button className="border border-gray-400 text-gray-700 text-xs font-semibold px-3 py-1 rounded-md hover:bg-gray-50">
+                  Edit ›
+                </button>
               </div>
-            ))}
-            <div className="shrink-0 text-gray-400 text-lg font-bold ml-1">›</div>
-          </div>
+
+              {/* MOBILE CATEGORIES */}
+              <div className="flex items-center overflow-x-auto scrollbar-hide px-7 py-2 gap-2">
+                {mobileCategories.map((cat, index) => (
+                  <div key={cat.label} className="flex items-center shrink-0">
+                    <div className="flex flex-col items-center gap-1 cursor-pointer">
+                      <div className="w-12 h-10 bg-gray-100 overflow-hidden flex items-center justify-center border border-gray-200 rounded-full">
+                        <img
+                          src={cat.icon}
+                          alt={cat.label}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <span className="text-[10px] text-gray-600 font-medium whitespace-nowrap">
+                        {cat.label}
+                      </span>
+                    </div>
+                    {index !== mobileCategories.length - 1 && (
+                      <div className="mx-3 h-13 w-[1px] bg-gray-400"></div>
+                    )}
+                  </div>
+                ))}
+                <div className="shrink-0 text-gray-400 text-lg font-bold ml-1">›</div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* DESKTOP NAVBAR */}
@@ -166,7 +176,7 @@ const Navbar = () => {
           <div className="max-w-7xl mx-auto px-4 h-18 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 shrink-0">
               <div className="bg-black text-white font-black text-lg px-3 py-1.5 tracking-widest rounded">
-                KAPIVA
+               <Link to="/">KAPIVA</Link>
               </div>
               <div className="text-[10px] text-gray-500 leading-tight">
                 <div className="flex items-center gap-1">
@@ -205,46 +215,41 @@ const Navbar = () => {
                 GET APP
               </button>
 
-              {/* LOGIN button using Link */}
+              {/* LOGIN / REGISTER */}
               <div className="flex items-center gap-2">
-  <Link
-    to="/login"
-    className="border border-[#1b1b1b] text-gray-700 text-xs font-semibold px-4 py-2 rounded-full hover:bg-gray-100 transition-colors"
-  >
-    LOGIN
-  </Link>
+                <Link
+                  to="/login"
+                  className="border border-[#1b1b1b] text-gray-700 text-xs font-semibold px-4 py-2 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  LOGIN
+                </Link>
 
-  <Link
-    to="/register"
-    className="bg-green-500 text-white text-xs font-semibold px-4 py-2 rounded-full hover:bg-green-600 transition-colors"
-  >
-    REGISTER
-  </Link>
-</div>
-<Link
-  to="/dashboard"
-  className="text-gray-600 hover:text-black p-2 text-xl rounded-full hover:bg-gray-100 transition-colors"
->
-  👤
-</Link>
-{/* Mobile-User icon → Dashboard */}
-{/* <Link
-  to="/dashboard"
-  className="text-gray-700 text-xl p-1.5"
-  title="User Dashboard"
->
-  👤
-</Link> */}
+                <Link
+                  to="/register"
+                  className="bg-green-500 text-white text-xs font-semibold px-4 py-2 rounded-full hover:bg-green-600 transition-colors"
+                >
+                  REGISTER
+                </Link>
+              </div>
+
+              <Link
+                to="/dashboard"
+                className="text-gray-600 hover:text-black p-2 text-xl rounded-full hover:bg-gray-100 transition-colors"
+              >
+                👤
+              </Link>
 
               <button className="text-gray-600 hover:text-black p-2 text-xl rounded-full hover:bg-gray-100 transition-colors">
                 🚚
               </button>
+
               <button className="relative text-gray-600 hover:text-black p-2 text-xl rounded-full hover:bg-gray-100 transition-colors">
                 🛒
                 <span className="absolute top-1 right-1 bg-green-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                   0
                 </span>
               </button>
+
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="flex flex-col gap-1.5 p-2 rounded-lg hover:bg-gray-100 transition-colors"
