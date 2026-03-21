@@ -7,7 +7,7 @@ import errorHandler from "./src/middleware/errorHandler.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import userRoutes from "./src/routes/userRoutes.js";
 import orderRoutes from "./src/routes/orderRoutes.js";
-// import adminRoutes from "./src/routes/adminRoutes.js";
+import adminRoutes from "./src/routes/adminRoutes.js";
 
 const app = express();
 
@@ -17,6 +17,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/", (req, res) => res.json({ message: "Kapiva Backend Running ✅" }));
 

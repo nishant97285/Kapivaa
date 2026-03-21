@@ -105,6 +105,41 @@ export const addToWishlist = async (req, res) => {
   }
 };
 
+// GET USER WALLET — user apna balance dekhe
+export const getMyWallet = async (req, res) => {
+  try {
+    let [wallet] = await pool.query(
+      "SELECT * FROM wallet WHERE user_id = ?",
+      [req.user.id]
+    );
+
+    // If wallet doesn't exist, create it
+    if (wallet.length === 0) {
+      await pool.query(
+        "INSERT INTO wallet (user_id, balance) VALUES (?, 0)",
+        [req.user.id]
+      );
+      [wallet] = await pool.query(
+        "SELECT * FROM wallet WHERE user_id = ?",
+        [req.user.id]
+      );
+    }
+
+    const [transactions] = await pool.query(
+      `SELECT wt.*, a.name as admin_name 
+       FROM wallet_transactions wt 
+       LEFT JOIN admins a ON wt.admin_id = a.id 
+       WHERE wt.user_id = ? 
+       ORDER BY wt.created_at DESC`,
+      [req.user.id]
+    );
+
+    res.json({ balance: wallet[0].balance, transactions });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 export const removeFromWishlist = async (req, res) => {
   try {
     await pool.query("DELETE FROM wishlist WHERE id = ? AND user_id = ?", [req.params.id, req.user.id]);
