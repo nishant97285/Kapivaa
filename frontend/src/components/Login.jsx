@@ -1,9 +1,35 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const Login = () => {
-  const [mobile, setMobile] = useState("");
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError("");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.email || !form.password) {
+      setError("Email aur password required hain.");
+      return;
+    }
+    try {
+      setLoading(true);
+      await login(form.email, form.password);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f7f7f5] font-sans">
@@ -22,9 +48,6 @@ const Login = () => {
         </button>
       </div>
 
-      {/* Page Title */}
-      {/* <h1 className="text-center text-xl font-bold text-gray-800 pt-3 pb-0">Login</h1> */}
-
       {/* Green Arc Section */}
       <div
         className="bg-[#b5c98a] flex justify-center items-start px-5 pt-4 pb-20"
@@ -34,42 +57,67 @@ const Login = () => {
         <div className="bg-white rounded-2xl shadow-xl px-8 py-8 w-full max-w-md text-center mt-2">
           <h2 className="text-[#e07b2a] font-bold text-base mb-2">Welcome to Kapiva!</h2>
           <p className="text-gray-500 text-sm mb-6 leading-relaxed">
-            Enter your mobile number and we will send you an OTP for verification.
+            Enter your email and password to login.
           </p>
 
-          {/* Country Selector */}
-          <div className="flex items-center border border-[#c8d8a0] rounded-lg px-4 h-12 mb-3 focus-within:border-[#7aaa3b] transition-colors">
-            <span className="text-xl mr-2">🇮🇳</span>
-            <select className="flex-1 outline-none text-sm text-gray-700 bg-transparent">
-              <option>India</option>
-              <option>USA</option>
-              <option>UK</option>
-            </select>
-          </div>
+          {/* Error */}
+          {error && (
+            <div className="bg-red-50 text-red-600 text-sm px-4 py-2 rounded-lg mb-4 text-left">
+              {error}
+            </div>
+          )}
 
-          {/* Mobile Input */}
-          <div className="flex items-center border border-[#c8d8a0] rounded-lg px-4 h-12 mb-2 focus-within:border-[#7aaa3b] transition-colors">
-            <span className="text-[#7aaa3b] mr-3 text-lg">📱</span>
-            <input
-              type="tel"
-              maxLength={10}
-              placeholder="Mobile Number"
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value.replace(/\D/g, ""))}
-              className="flex-1 outline-none text-sm text-gray-700 bg-transparent placeholder-gray-400"
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            {/* Email */}
+            <div className="flex items-center border border-[#c8d8a0] rounded-lg px-4 h-12 focus-within:border-[#7aaa3b] transition-colors">
+              <span className="text-[#7aaa3b] mr-3 text-lg">✉️</span>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                value={form.email}
+                onChange={handleChange}
+                className="flex-1 outline-none text-sm text-gray-700 bg-transparent placeholder-gray-400"
+              />
+            </div>
 
-          {/* Arrow Button */}
-          <button
-            style={{ width: 52, height: 52 }}
-            className="bg-[#5a7a2e] hover:bg-[#4a6724] text-white rounded-full flex items-center justify-center mx-auto mt-5 shadow-lg transition-all hover:scale-105 active:scale-95"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"
-              strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
-          </button>
+            {/* Password */}
+            <div className="flex items-center border border-[#c8d8a0] rounded-lg px-4 h-12 focus-within:border-[#7aaa3b] transition-colors">
+              <span className="text-[#7aaa3b] mr-3 text-lg">🔒</span>
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={form.password}
+                onChange={handleChange}
+                className="flex-1 outline-none text-sm text-gray-700 bg-transparent placeholder-gray-400"
+              />
+            </div>
+
+            {/* Arrow Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              style={{ width: 52, height: 52 }}
+              className="bg-[#5a7a2e] hover:bg-[#4a6724] text-white rounded-full flex items-center justify-center mx-auto mt-5 shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"
+                  strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              )}
+            </button>
+          </form>
+
+          <p className="text-sm text-gray-500 mt-5">
+            Don’t have an account? {" "}
+            <Link to="/register" className="text-[#5a7a2e] font-semibold hover:underline">
+              Register 
+            </Link>
+          </p>
         </div>
       </div>
 
