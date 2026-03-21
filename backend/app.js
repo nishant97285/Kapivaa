@@ -3,10 +3,11 @@ import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
 
-import authRoutes from "./routes/authRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import orderRoutes from "./routes/orderRoutes.js";
-import errorHandler from "./middleware/errorHandler.js";
+import errorHandler from "./src/middleware/errorHandler.js";
+import authRoutes from "./src/routes/authRoutes.js";
+import userRoutes from "./src/routes/userRoutes.js";
+import orderRoutes from "./src/routes/orderRoutes.js";
+// import adminRoutes from "./src/routes/adminRoutes.js";
 
 const app = express();
 
