@@ -80,8 +80,8 @@ import Register from "../pages/Register.jsx";
 // import UserWallet from "../pages/Admin/UserWallet.jsx";
 
 // MLM Dashboard pages
-import DashboardLayout from "../pages/dash/DashboardLayout.js";
-import DashboardHome from "../pages/dash/DashboardHome.js";
+import DashboardLayout from "../pages/dash/Dashboardlayout.jsx";
+import DashboardHome from "../pages/dash/Dashboardhome.jsx";
 import {
   EditProfile,
   ChangePassword,
@@ -94,7 +94,7 @@ import {
   Withdrawal,
   WithdrawalHistory,
   Support,
-} from "../pages/dash/AllPages.js";
+} from "../pages/dash/Allpages.jsx";
 
 // Admin protected wrapper
 const AdminRoute = ({ children }) => {
@@ -122,7 +122,7 @@ const AppRoutes = () => {
       </Route> */}
 
       {/* MLM Dashboard */}
-      <Route path="/dashboard1" element={<DashboardLayout />}>
+      <Route path="/dash" element={<DashboardLayout />}>
         <Route index element={<DashboardHome />} />
 
         {/* Profile */}
