@@ -1,8 +1,14 @@
+// Gym-Foods
 import p1 from "../assets/products/Gym-P1.webp";
 import p2 from "../assets/products/Gym-P2.jpg";
 import p3 from "../assets/products/Gym-P3.jpg";
 import p4 from "../assets/products/Gym-P3.jpg";
 
+// Skin-Hair
+import s1 from '../assets/products/Skin1.jpg'
+import s2 from '../assets/products/Skin2.jpg'
+import s3 from '../assets/products/Skin3.webp'
+import s4 from '../assets/products/Skin4.webp'
 
 export const concernProducts = {
   "Gym Foods": [
@@ -24,10 +30,10 @@ export const concernProducts = {
     { id: 12, name: "Shilajit Gold Capsules 60 Caps", category: "Weight Management", price: 1199, originalPrice: 1499, discount: 20, image: p4, rating: 4.4, reviews: 30 },
   ],
   "Skin Care": [
-    { id: 13, name: "Shilajit Gold Resin 40g", category: "Skin Care", price: 1312, originalPrice: 1549, discount: 15, image: p1, rating: 4.4, reviews: 1902 },
-    { id: 14, name: "Shilajit Gold Mix Preworkout", category: "Skin Care", price: 1312, originalPrice: 1549, discount: 15, image: p2, rating: 4.3, reviews: 32 },
-    { id: 15, name: "Testofuel Shilajit Whey Protein", category: "Skin Care", price: 2899, originalPrice: 3599, discount: 19, image: p3, rating: 4.4, reviews: 217 },
-    { id: 16, name: "Shilajit Gold Capsules 60 Caps", category: "Skin Care", price: 1199, originalPrice: 1499, discount: 20, image: p4, rating: 4.4, reviews: 30 },
+    { id: 13, name: "Shilajit Gold Resin 40g", category: "Skin Care", price: 799, originalPrice: 938, discount: 15, image: s1, rating: 4.4, reviews: 1902 },
+    { id: 14, name: "Shilajit Gold Mix Preworkout", category: "Skin Care", price: 466, originalPrice: 560, discount: 15, image: s2, rating: 4.3, reviews: 32 },
+    { id: 15, name: "Testofuel Shilajit Whey Protein", category: "Skin Care", price: 748, originalPrice: 796, discount: 19, image: s3, rating: 4.4, reviews: 217 },
+    { id: 16, name: "Shilajit Gold Capsules 60 Caps", category: "Skin Care", price: 468, originalPrice: 561, discount: 20, image: s4, rating: 4.4, reviews: 30 },
   ],
   "Heart Care": [
     { id: 17, name: "Shilajit Gold Resin 40g", category: "Heart Care", price: 1312, originalPrice: 1549, discount: 15, image: p1, rating: 4.4, reviews: 1902 },
