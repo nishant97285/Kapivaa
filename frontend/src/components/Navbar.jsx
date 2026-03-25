@@ -23,11 +23,15 @@ const mobileCategories = [
 const Navbar = () => {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
+  const isDashboard = location.pathname.startsWith("/dash");
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [bannerVisible, setBannerVisible] = useState(true);
   const scrolled = useScroll(20);
+
+  // 🔥 Dashboard pe navbar hide
+  if (isDashboard) return null;
 
   return (
     <>
@@ -108,9 +112,9 @@ const Navbar = () => {
               <button className="text-gray-700 text-xl p-1.5">🔍</button>
               <button className="text-gray-700 text-xl p-1.5">🚚</button>
               <Link
-                to="/dashboard"
+                to="/dash"
                 className="text-gray-700 text-xl p-1.5"
-                title="Login"
+                title="dashboard"
               >
                 👤
               </Link>
@@ -233,7 +237,7 @@ const Navbar = () => {
               </div>
 
               <Link
-                to="/dashboard"
+                to="/dash"
                 className="text-gray-600 hover:text-black p-2 text-xl rounded-full hover:bg-gray-100 transition-colors"
               >
                 👤
