@@ -1,4 +1,5 @@
 import { useState } from "react";
+import banner from '../assets/footer/banner.png'
 
 const Footer = () => {
   const [phone, setPhone] = useState("");
@@ -8,26 +9,21 @@ const Footer = () => {
     <>
       {/* ══════════════════════════════
           SUBSCRIBE BANNER
-      ══════════════════════════════ */}
-      <div
-        className="relative w-full py-16 px-4 flex flex-col items-center justify-center text-center overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #1a3a1a, #2d5a2d, #1a4a2a)",
-          minHeight: 200,
-        }}
-      >
-        {/* Decorative leaves left */}
-        <div className="absolute left-0 top-0 bottom-0 pointer-events-none select-none opacity-60 flex items-center">
-          <div className="text-8xl" style={{ transform: "rotate(-10deg) translateX(-10px)" }}>🌿</div>
-          <div className="text-6xl" style={{ transform: "rotate(15deg) translateX(-20px)" }}>🌶️</div>
-        </div>
+      ══════════════════════════════ */}    
 
-        {/* Decorative leaves right */}
-        <div className="absolute right-0 top-0 bottom-0 pointer-events-none select-none opacity-60 flex items-center">
-          <div className="text-6xl" style={{ transform: "rotate(-15deg) translateX(20px)" }}>🌿</div>
-          <div className="text-8xl" style={{ transform: "rotate(10deg) translateX(10px)" }}>🍃</div>
-        </div>
-
+    <div className="relative w-full py-16 px-4 flex flex-col items-center justify-center text-center overflow-hidden"
+       style={{
+       backgroundImage: `url(${banner})`,
+       backgroundSize: "cover",
+       backgroundPosition: "center",
+       backgroundRepeat: "no-repeat",
+       minHeight: 200,
+     }}
+>
+   
+ {/* Overlay */}
+      <div className="absolute inset-0 bg-black/40"></div>
+      <div className="relative z-10 w-full flex flex-col items-center">
         {/* Text */}
         <h2
           className="text-4xl md:text-5xl text-white mb-6 leading-tight"
@@ -47,11 +43,12 @@ const Footer = () => {
             style={{ borderRadius: "4px 0 0 4px" }}
           />
           <button
-            className="px-5 py-4 flex items-center justify-center text-white font-bold text-lg transition-all hover:opacity-90"
-            style={{ background: "#4a9a8a", borderRadius: "0 4px 4px 0", minWidth: 56 }}
+            className="px-6 py-2.5 flex items-center justify-center text-black transition-all duration-200 hover:opacity-90 hover:scale-105"
+            style={{ background: "#9af1df", borderRadius: "0 6px 6px 0", minWidth: 60 }}
           >
-            →
+             <span className="text-3xl font-semibold leading-none">→</span>
           </button>
+        </div>
         </div>
       </div>
 
@@ -223,7 +220,7 @@ const Footer = () => {
         style={{ background: "#1a3a2a" }}
       >
         <p className="text-xs text-white/80">
-          Kapiva is a company of Adret Retail Private Limited © Copyright 2023 Kapiva
+          Kapiva is a company of Adret Retail Private Limited © Copyright 2025 Kapiva
         </p>
       </div>
     </>
