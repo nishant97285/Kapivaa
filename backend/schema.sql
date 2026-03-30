@@ -1,178 +1,166 @@
--- CREATE DATABASE kapiva;
--- show databases;
--- USE kapiva;
-show databases;
+CREATE DATABASE IF NOT EXISTS kapiva;
 USE kapiva;
-USE kapiva;
-
--- Users table
+ 
+-- ── 1. USERS ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(150) NOT NULL UNIQUE,
-  password VARCHAR(255) NOT NULL,
-  phone VARCHAR(15),
-  dob DATE,
-  gender ENUM('Male', 'Female', 'Other'),
-  coins INT DEFAULT 0,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  name          VARCHAR(100)  NOT NULL,
+  email         VARCHAR(150)  NOT NULL UNIQUE,
+  password      VARCHAR(255)  NOT NULL,
+  phone         VARCHAR(15),
+  dob           DATE,
+  gender        ENUM('Male','Female','Other'),
+  coins         INT           DEFAULT 0,
+  referral_code VARCHAR(20)   UNIQUE,
+  referred_by   VARCHAR(20)   DEFAULT NULL,
+  role          ENUM('user','admin') DEFAULT 'user',
+  created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
 );
-
--- Orders table
+ 
+-- ── 2. ADMINS ────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS admins (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  name       VARCHAR(100) NOT NULL,
+  email      VARCHAR(150) NOT NULL UNIQUE,
+  password   VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+);
+ 
+-- ── 3. ORDERS ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS orders (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  user_id      INT          NOT NULL,
   product_name VARCHAR(255) NOT NULL,
-  price DECIMAL(10, 2) NOT NULL,
-  qty INT DEFAULT 1,
-  status ENUM('Pending', 'In Transit', 'Delivered', 'Cancelled') DEFAULT 'Pending',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  price        DECIMAL(10,2) NOT NULL,
+  qty          INT          DEFAULT 1,
+  status       ENUM('Pending','In Transit','Delivered','Cancelled') DEFAULT 'Pending',
+  created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- Addresses table
+ 
+-- ── 4. ADDRESSES ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS addresses (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  label VARCHAR(50) DEFAULT 'Home',
-  name VARCHAR(100) NOT NULL,
-  phone VARCHAR(15),
-  line1 VARCHAR(255) NOT NULL,
-  city VARCHAR(100) NOT NULL,
-  state VARCHAR(100),
-  pincode VARCHAR(10) NOT NULL,
-  is_default TINYINT(1) DEFAULT 0,
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  user_id    INT          NOT NULL,
+  label      VARCHAR(50)  DEFAULT 'Home',
+  name       VARCHAR(100) NOT NULL,
+  phone      VARCHAR(15),
+  line1      VARCHAR(255) NOT NULL,
+  city       VARCHAR(100) NOT NULL,
+  state      VARCHAR(100),
+  pincode    VARCHAR(10)  NOT NULL,
+  is_default TINYINT(1)   DEFAULT 0,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- Wishlist table
+ 
+-- ── 5. WISHLIST ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS wishlist (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  product_name VARCHAR(255) NOT NULL,
-  price DECIMAL(10, 2),
-  original_price DECIMAL(10, 2),
-  discount INT,
-  image_url VARCHAR(500),
-  rating DECIMAL(2, 1),
-  reviews INT,
-  added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  user_id        INT           NOT NULL,
+  product_name   VARCHAR(255)  NOT NULL,
+  price          DECIMAL(10,2),
+  original_price DECIMAL(10,2),
+  discount       INT,
+  image_url      VARCHAR(500),
+  rating         DECIMAL(2,1),
+  reviews        INT,
+  added_at       TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- Coin transactions table
+ 
+-- ── 6. COIN TRANSACTIONS ─────────────────────────────────────
 CREATE TABLE IF NOT EXISTS coin_transactions (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  label VARCHAR(255),
-  coins INT NOT NULL,
-  type ENUM('earned', 'used') NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  user_id    INT          NOT NULL,
+  label      VARCHAR(255),
+  coins      INT          NOT NULL,
+  type       ENUM('earned','used') NOT NULL,
+  created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- In Users table  referral columns add 
-ALTER TABLE users 
-ADD COLUMN referral_code VARCHAR(20) UNIQUE,
-ADD COLUMN referred_by VARCHAR(20) DEFAULT NULL;
-
---  admin/seed user insert manually
-INSERT INTO users (name, email, password, coins, referral_code)
-VALUES ('Admin', 'admin@kapiva.com', '112233', 0, 'KAPIVA2026');
-DESC users;
-
-USE kapiva;
-SELECT * FROM users;
-
-USE kapiva;
-
-INSERT INTO users (name, email, password, coins, referral_code, referred_by)
-VALUES ('Admin', 'admin@kapiva.com', 'admin123', 0, 'KAPIVA2026', NULL);
-
-SELECT id, name, email, referral_code FROM users;
-
-
-USE kapiva;
-
--- Wallet table
+ 
+-- ── 7. WALLET ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS wallet (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL UNIQUE,
-  balance DECIMAL(10,2) DEFAULT 0.00,
+  id      INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT            NOT NULL UNIQUE,
+  balance DECIMAL(10,2)  DEFAULT 0.00,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- Wallet transactions history
+ 
+-- ── 8. WALLET TRANSACTIONS ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS wallet_transactions (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  admin_id INT NOT NULL,
-  type ENUM('credit', 'debit') NOT NULL,
-  amount DECIMAL(10,2) NOT NULL,
-  note VARCHAR(255),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  user_id    INT           NOT NULL,
+  admin_id   INT           NOT NULL,
+  type       ENUM('credit','debit') NOT NULL,
+  amount     DECIMAL(10,2) NOT NULL,
+  note       VARCHAR(255),
+  created_at TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- Admin table
-CREATE TABLE IF NOT EXISTS admins (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(150) NOT NULL UNIQUE,
-  password VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Add role column to users
-ALTER TABLE users ADD COLUMN role ENUM('user','admin') DEFAULT 'user';
-
--- Fix referral_code to be US+ID based (update existing)
-ALTER TABLE users ADD COLUMN user_code VARCHAR(20);
-
-
-ALTER TABLE users ADD COLUMN role ENUM('user', 'admin') DEFAULT 'user';
-DESC users;
-
--- Wallet table
-CREATE TABLE IF NOT EXISTS wallet (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL UNIQUE,
-  balance DECIMAL(10,2) DEFAULT 0.00,
+ 
+-- ── 9. ACTIVATIONS ───────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS activations (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  user_id        INT           NOT NULL,
+  package_name   VARCHAR(100)  NOT NULL,
+  amount         DECIMAL(10,2) NOT NULL,
+  transaction_id VARCHAR(100),
+  status         ENUM('Pending','Active','Expired','Rejected') DEFAULT 'Pending',
+  created_at     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- Wallet transactions history
-CREATE TABLE IF NOT EXISTS wallet_transactions (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  admin_id INT NOT NULL,
-  type ENUM('credit', 'debit') NOT NULL,
-  amount DECIMAL(10,2) NOT NULL,
-  note VARCHAR(255),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ 
+-- ── 10. INCOME ───────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS income (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  user_id    INT           NOT NULL,
+  type       ENUM('Referral Income','Direct Income','Level Bonus') NOT NULL,
+  from_user  VARCHAR(100),
+  amount     DECIMAL(10,2) NOT NULL,
+  status     ENUM('Paid','Processing','Pending') DEFAULT 'Paid',
+  created_at TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- Step 1: Table Admin
-CREATE TABLE IF NOT EXISTS admins (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100),
-  email VARCHAR(150) UNIQUE,
-  password VARCHAR(255),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+ 
+-- ── 11. WITHDRAWALS ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS withdrawals (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  user_id        INT           NOT NULL,
+  amount         DECIMAL(10,2) NOT NULL,
+  method         ENUM('Bank Transfer','UPI') NOT NULL,
+  account_number VARCHAR(50),
+  ifsc_code      VARCHAR(20),
+  upi_id         VARCHAR(100),
+  transaction_id VARCHAR(100),
+  status         ENUM('Pending','Paid','Rejected','Processing') DEFAULT 'Pending',
+  created_at     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
+ 
+-- ── 12. SUPPORT TICKETS ──────────────────────────────────────
+CREATE TABLE IF NOT EXISTS support_tickets (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  user_id    INT          NOT NULL,
+  subject    VARCHAR(255) NOT NULL,
+  category   VARCHAR(100),
+  message    TEXT         NOT NULL,
+  reply      TEXT         DEFAULT NULL,
+  status     ENUM('Open','In Progress','Closed') DEFAULT 'Open',
+  created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+ 
+-- ============================================================
+--  SEED DATA — Admin user (referral chain start karne ke liye)
+--  Password: 112233 (plain text — production mein bcrypt hash use karo)
+-- ============================================================
+ 
 INSERT INTO admins (name, email, password)
 VALUES ('Admin', 'admin@gmail.com', '112233');
 
--- Wallet table
-CREATE TABLE IF NOT EXISTS wallet (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL UNIQUE,
-  balance DECIMAL(10,2) DEFAULT 0.00,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
+INSERT INTO users (name, email, password, coins, referral_code, referred_by, role)
+VALUES ('Vivek', 'vivek@gmail.com', '112233', 0, 'KAPIVA2026', NULL, 'user');
 
-SELECT * FROM admins;
-
-UPDATE admins SET password = '$2b$12$f2L6RpTck4ljdVV7xNS..e8dxVaD8tnX5vUp9SlLnD1tzNcYO6Jz2' WHERE email = 'admin@gmail.com';
+USE kapiva;
+SHOW TABLES;
