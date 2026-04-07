@@ -3,11 +3,23 @@ import pool from "../config/db.js";
 export const getProfile = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT id, name, email, phone, dob, gender, coins, referral_code, topup_wallet, created_at FROM users WHERE id = ?",
+      "SELECT id, name, email, phone, dob, gender, coins, referral_code, topup_wallet, commission_wallet, city, state, pincode, created_at FROM users WHERE id = ?",
       [req.user.id]
     );
     if (rows.length === 0) return res.status(404).json({ message: "User not found." });
-    res.json(rows[0]);
+
+    const user = rows[0];
+
+    // Get total withdrawn from max_withdraw_history
+    const [withdrawnRows] = await pool.query(
+      `SELECT COALESCE(SUM(amount), 0) as total 
+       FROM max_withdraw_history 
+       WHERE userid = ? AND (status = 'A' OR status = 'P')`,
+      [user.referral_code]
+    );
+    user.total_withdrawn = withdrawnRows[0].total;
+
+    res.json(user);
   } catch (err) {
     res.status(500).json({ message: "Server error." });
   }
@@ -15,11 +27,26 @@ export const getProfile = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { name, phone, dob, gender } = req.body;
-    await pool.query(
-      "UPDATE users SET name = ?, phone = ?, dob = ?, gender = ? WHERE id = ?",
-      [name, phone, dob, gender, req.user.id]
-    );
+    const updates = req.body;
+    const allowedFields = ["name", "phone", "dob", "gender", "city", "state", "pincode"];
+    const queryParts = [];
+    const values = [];
+
+    for (const field of allowedFields) {
+      if (updates[field] !== undefined) {
+        queryParts.push(`${field} = ?`);
+        values.push(updates[field]);
+      }
+    }
+
+    if (queryParts.length === 0) {
+      return res.status(400).json({ message: "No fields to update." });
+    }
+
+    values.push(req.user.id);
+    const sql = `UPDATE users SET ${queryParts.join(", ")} WHERE id = ?`;
+
+    await pool.query(sql, values);
     res.json({ message: "Profile updated successfully." });
   } catch (err) {
     res.status(500).json({ message: "Server error." });

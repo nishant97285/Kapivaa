@@ -33,6 +33,33 @@ async function migrate() {
       )
     `);
 
+    // 3. Drop and Recreate max_withdraw_history
+    console.log("⏳ Recreating max_withdraw_history...");
+    await pool.query("DROP TABLE IF EXISTS max_withdraw_history");
+    await pool.query(`
+      CREATE TABLE max_withdraw_history (
+        id             INT AUTO_INCREMENT PRIMARY KEY,
+        userid         VARCHAR(100),
+        amount         DECIMAL(10,2) NOT NULL,
+        method         VARCHAR(50),
+        details        VARCHAR(255),
+        status         VARCHAR(10)   DEFAULT 'P',
+        created_at     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // 4. Update users table with missing fields
+    console.log("⏳ Updating users table schema...");
+    try {
+      await pool.query("ALTER TABLE users ADD COLUMN city VARCHAR(100) DEFAULT NULL");
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE users ADD COLUMN state VARCHAR(100) DEFAULT NULL");
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE users ADD COLUMN pincode VARCHAR(10) DEFAULT NULL");
+    } catch (e) {}
+
     console.log("✅ Migration Completed Successfully!");
     process.exit(0);
   } catch (err) {

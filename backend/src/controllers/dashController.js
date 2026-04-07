@@ -19,12 +19,13 @@ export const getBalance = async (req, res) => {
     }
 
     const { topup_wallet, commission_wallet, growth_wallet } = userWallet[0];
-    const total_withdrawn = await pool.query(
-      "SELECT COALESCE(SUM(amount), 0) as total FROM withdrawals WHERE user_id = ? AND status = 'Paid'",
+    const [withdrawnRows] = await pool.query(
+      `SELECT COALESCE(SUM(amount), 0) as total 
+       FROM max_withdraw_history 
+       WHERE userid = (SELECT referral_code FROM users WHERE id = ?) AND (status = 'A' OR status = 'P')`,
       [req.user.id]
     );
-
-    const [[withdrawn]] = total_withdrawn;
+    const withdrawn = withdrawnRows[0];
 
     res.json({
       wallet_balance: topup_wallet,
@@ -307,48 +308,72 @@ export const getReferralIncome = async (req, res) => {
 // ── WITHDRAWAL ───────────────────────────────────────────────────────────────
 
 export const requestWithdrawal = async (req, res) => {
+  const connection = await pool.getConnection();
   try {
-    const { amount, method, account_number, ifsc_code, upi_id } = req.body;
+    const { amount } = req.body;
+    const method = req.body.method || "Withdrawal";
+    const details = req.body.details || "";
 
-    if (!amount || !method)
-      return res.status(400).json({ message: "Amount and method are required." });
+    if (!amount)
+      return res.status(400).json({ message: "Amount is required." });
 
     if (amount < 500)
       return res.status(400).json({ message: "Minimum withdrawal amount is ₹500." });
 
-    // Check wallet balance
-    const [wallet] = await pool.query(
-      "SELECT balance FROM wallet WHERE user_id = ?",
+    await connection.beginTransaction();
+
+    // Check user balance and get referral code
+    const [[user]] = await connection.query(
+      "SELECT commission_wallet, referral_code FROM users WHERE id = ?",
       [req.user.id]
     );
 
-    const balance = wallet.length > 0 ? parseFloat(wallet[0].balance) : 0;
-    if (balance < amount)
-      return res.status(400).json({ message: "Insufficient wallet balance." });
+    if (!user) {
+      await connection.rollback();
+      return res.status(404).json({ message: "User not found." });
+    }
 
-    // Deduct from wallet
-    await pool.query(
-      "UPDATE wallet SET balance = balance - ? WHERE user_id = ?",
+    const balance = parseFloat(user.commission_wallet || 0);
+    if (balance < amount) {
+      await connection.rollback();
+      return res.status(400).json({ message: "insufficient balance in income wallet" });
+    }
+
+    // Deduct from commission_wallet
+    await connection.query(
+      "UPDATE users SET commission_wallet = commission_wallet - ? WHERE id = ?",
       [amount, req.user.id]
     );
 
-    // Create withdrawal request
-    await pool.query(
-      "INSERT INTO withdrawals (user_id, amount, method, account_number, ifsc_code, upi_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [req.user.id, amount, method, account_number || null, ifsc_code || null, upi_id || null, "Pending"]
+
+    // Create withdrawal record in max_withdraw_history
+    await connection.query(
+      "INSERT INTO max_withdraw_history (userid, amount, method, details, status) VALUES (?, ?, ?, ?, ?)",
+      [user.referral_code, amount, method, details, "P"]
     );
 
+    await connection.commit();
     res.status(201).json({ message: "Withdrawal request submitted successfully!" });
   } catch (err) {
+    if (connection) await connection.rollback();
     res.status(500).json({ message: err.message });
+  } finally {
+    if (connection) connection.release();
   }
 };
 
 export const getWithdrawalHistory = async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      "SELECT * FROM withdrawals WHERE user_id = ? ORDER BY created_at DESC",
+    const [[user]] = await pool.query(
+      "SELECT referral_code FROM users WHERE id = ?",
       [req.user.id]
+    );
+
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    const [rows] = await pool.query(
+      "SELECT * FROM max_withdraw_history WHERE userid = ? ORDER BY created_at DESC",
+      [user.referral_code]
     );
     res.json(rows);
   } catch (err) {

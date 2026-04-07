@@ -23,6 +23,9 @@ const ensureUserWalletColumns = async () => {
     await ensureColumn("topup_wallet", "topup_wallet DECIMAL(10,2) DEFAULT 0.00");
     await ensureColumn("commission_wallet", "commission_wallet DECIMAL(10,2) DEFAULT 0.00");
     await ensureColumn("growth_wallet", "growth_wallet DECIMAL(10,2) DEFAULT 0.00");
+    await ensureColumn("city", "city VARCHAR(100) DEFAULT NULL");
+    await ensureColumn("state", "state VARCHAR(100) DEFAULT NULL");
+    await ensureColumn("pincode", "pincode VARCHAR(10) DEFAULT NULL");
   } catch (err) {
     console.error("⚠️ Could not ensure user wallet columns:", err.message);
   }

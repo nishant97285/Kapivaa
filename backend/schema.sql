@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS users (
   referred_by     VARCHAR(20)   DEFAULT NULL,
   role            ENUM('user','admin') DEFAULT 'user',
   status          ENUM('A','P')        DEFAULT 'P',
+  city            VARCHAR(100) DEFAULT NULL,
+  state           VARCHAR(100) DEFAULT NULL,
+  pincode         VARCHAR(10) DEFAULT NULL,
   created_at      TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
 );
  
@@ -173,6 +176,17 @@ CREATE TABLE IF NOT EXISTS max_wallet_history_pending (
   amount         DECIMAL(10,2) NOT NULL,
   type           VARCHAR(50)   DEFAULT 'Direct Income',
   status         VARCHAR(10)   DEFAULT 'A',
+  created_at     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
+);
+ 
+-- ── 15. MAX WITHDRAW HISTORY ──────────────────────────────────
+CREATE TABLE IF NOT EXISTS max_withdraw_history (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  userid         VARCHAR(100), -- User's referral code
+  amount         DECIMAL(10,2) NOT NULL,
+  method         VARCHAR(50),
+  details        VARCHAR(255), -- Account/UPI details
+  status         VARCHAR(10)   DEFAULT 'P', -- P: Pending, A: Approved, R: Rejected
   created_at     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
 );
  
