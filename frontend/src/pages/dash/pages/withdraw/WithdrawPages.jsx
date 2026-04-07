@@ -12,14 +12,14 @@ export function Withdrawal() {
   return (
     <PageWrapper title="Withdrawal Request" subtitle="Request a payout to your bank account">
       {/* Balance Summary */}
-      <div className="grid grid-cols-2 gap-4 mb-7 max-w-md">
-        <div className="bg-emerald-50 rounded-xl p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-7 max-w-md">
+        <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
           <p className="text-xs text-slate-500 mb-1">Available Balance</p>
-          <p className="text-2xl font-bold text-emerald-600">₹9,470</p>
+          <p className="text-xl md:text-2xl font-bold text-emerald-600">₹9,470</p>
         </div>
-        <div className="bg-orange-50 rounded-xl p-4">
+        <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
           <p className="text-xs text-slate-500 mb-1">Total Withdrawn</p>
-          <p className="text-2xl font-bold text-orange-500">₹24,300</p>
+          <p className="text-xl md:text-2xl font-bold text-orange-500">₹24,300</p>
         </div>
       </div>
 

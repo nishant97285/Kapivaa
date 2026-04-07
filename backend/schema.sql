@@ -7,14 +7,18 @@ CREATE TABLE IF NOT EXISTS users (
   name          VARCHAR(100)  NOT NULL,
   email         VARCHAR(150)  NOT NULL UNIQUE,
   password      VARCHAR(255)  NOT NULL,
-  phone         VARCHAR(15),
-  dob           DATE,
-  gender        ENUM('Male','Female','Other'),
-  coins         INT           DEFAULT 0,
-  referral_code VARCHAR(20)   UNIQUE,
-  referred_by   VARCHAR(20)   DEFAULT NULL,
-  role          ENUM('user','admin') DEFAULT 'user',
-  created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
+  phone           VARCHAR(15),
+  dob             DATE,
+  gender          ENUM('Male','Female','Other'),
+  coins           INT           DEFAULT 0,
+  topup_wallet    DECIMAL(10,2) DEFAULT 0.00,
+  commission_wallet DECIMAL(10,2) DEFAULT 0.00,
+  growth_wallet   DECIMAL(10,2) DEFAULT 0.00,
+  referral_code   VARCHAR(20)   UNIQUE,
+  referred_by     VARCHAR(20)   DEFAULT NULL,
+  role            ENUM('user','admin') DEFAULT 'user',
+  status          ENUM('A','P')        DEFAULT 'P',
+  created_at      TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
 );
  
 -- ── 2. ADMINS ────────────────────────────────────────────────
@@ -149,6 +153,27 @@ CREATE TABLE IF NOT EXISTS support_tickets (
   status     ENUM('Open','In Progress','Closed') DEFAULT 'Open',
   created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- ── 13. MAX STAKE HISTORY ────────────────────────────────────
+CREATE TABLE IF NOT EXISTS max_stake_history (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  userid         VARCHAR(100), -- Person who activated (Login User)
+  toid           VARCHAR(100), -- Person being activated (Target User)
+  amount         DECIMAL(10,2) NOT NULL,
+  status         VARCHAR(10)   DEFAULT 'I',
+  created_at     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ── 14. MAX WALLET HISTORY PENDING ──────────────────────────
+CREATE TABLE IF NOT EXISTS max_wallet_history_pending (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  userid         VARCHAR(100), -- Person who got the bonus (Sponsor)
+  toid           VARCHAR(100), -- Person who was topped up (Target User)
+  amount         DECIMAL(10,2) NOT NULL,
+  type           VARCHAR(50)   DEFAULT 'Direct Income',
+  status         VARCHAR(10)   DEFAULT 'A',
+  created_at     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
 );
  
 -- ============================================================

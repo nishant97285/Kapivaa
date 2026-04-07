@@ -50,7 +50,7 @@ export const getAllUsers = async (req, res) => {
     const q      = `%${search}%`;
 
     const [users] = await pool.query(
-      `SELECT id, name, email, phone, coins, referral_code, referred_by, role, created_at
+      `SELECT id, name, email, phone, coins, topup_wallet, commission_wallet, growth_wallet, referral_code, referred_by, role, created_at
        FROM users
        WHERE name LIKE ? OR email LIKE ? OR referral_code LIKE ?
        ORDER BY created_at DESC
@@ -73,7 +73,8 @@ export const getAllUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT id, name, email, phone, coins, referral_code, referred_by, role, created_at FROM users WHERE id = ?",
+      `SELECT id, name, email, phone, coins, topup_wallet, commission_wallet, growth_wallet, referral_code, referred_by, role, created_at
+       FROM users WHERE id = ?`,
       [req.params.id]
     );
     if (rows.length === 0) return res.status(404).json({ message: "User not found." });

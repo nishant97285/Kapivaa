@@ -3,7 +3,7 @@ import { PageWrapper, FormField, SaveBtn, inputCls } from "../../components/Dash
 export function EditProfile() {
   return (
     <PageWrapper title="Edit Profile" subtitle="Update your personal information">
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {[
           { label: "Full Name", type: "text",  val: "Vivek Ranjan" },
           { label: "Email",     type: "email", val: "vivek@example.com" },
@@ -17,7 +17,9 @@ export function EditProfile() {
           </FormField>
         ))}
       </div>
-      <SaveBtn />
+      <div className="flex justify-end mt-4">
+        <SaveBtn />
+      </div>
     </PageWrapper>
   );
 }

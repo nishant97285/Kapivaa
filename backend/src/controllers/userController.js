@@ -3,7 +3,7 @@ import pool from "../config/db.js";
 export const getProfile = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT id, name, email, phone, dob, gender, coins, created_at FROM users WHERE id = ?",
+      "SELECT id, name, email, phone, dob, gender, coins, referral_code, topup_wallet, created_at FROM users WHERE id = ?",
       [req.user.id]
     );
     if (rows.length === 0) return res.status(404).json({ message: "User not found." });
@@ -108,22 +108,19 @@ export const addToWishlist = async (req, res) => {
 // GET USER WALLET — user apna balance dekhe
 export const getMyWallet = async (req, res) => {
   try {
-    let [wallet] = await pool.query(
-      "SELECT * FROM wallet WHERE user_id = ?",
+    const [userWallet] = await pool.query(
+      `SELECT 
+         COALESCE(topup_wallet, 0) AS topup_wallet,
+         COALESCE(commission_wallet, 0) AS commission_wallet,
+         COALESCE(growth_wallet, 0) AS growth_wallet
+       FROM users WHERE id = ?`,
       [req.user.id]
     );
 
-    // If wallet doesn't exist, create it
-    if (wallet.length === 0) {
-      await pool.query(
-        "INSERT INTO wallet (user_id, balance) VALUES (?, 0)",
-        [req.user.id]
-      );
-      [wallet] = await pool.query(
-        "SELECT * FROM wallet WHERE user_id = ?",
-        [req.user.id]
-      );
-    }
+    if (userWallet.length === 0) return res.status(404).json({ message: "User not found." });
+
+    const { topup_wallet, commission_wallet, growth_wallet } = userWallet[0];
+    const total_balance = parseFloat(topup_wallet) + parseFloat(commission_wallet) + parseFloat(growth_wallet);
 
     const [transactions] = await pool.query(
       `SELECT wt.*, a.name as admin_name 
@@ -134,7 +131,14 @@ export const getMyWallet = async (req, res) => {
       [req.user.id]
     );
 
-    res.json({ balance: wallet[0].balance, transactions });
+    res.json({
+      balance: topup_wallet,
+      topup_wallet,
+      commission_wallet,
+      growth_wallet,
+      total_balance,
+      transactions,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

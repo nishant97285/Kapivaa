@@ -103,7 +103,7 @@ useEffect(() => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-800">
-                  {["ID", "Name", "Email", "Referral Code", "Coins", "Joined", "Actions"].map((h) => (
+                  {["ID", "Name", "Email", "Referral Code", "Topup", "Commission", "Growth", "Coins", "Joined", "Actions"].map((h) => (
                     <th key={h} className="text-left px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wide">
                       {h}
                     </th>
@@ -139,6 +139,9 @@ useEffect(() => {
                           {user.referral_code}
                         </span>
                       </td>
+                      <td className="px-5 py-4 text-sm text-slate-100">₹{parseFloat(user.topup_wallet || 0).toFixed(2)}</td>
+                      <td className="px-5 py-4 text-sm text-slate-100">₹{parseFloat(user.commission_wallet || 0).toFixed(2)}</td>
+                      <td className="px-5 py-4 text-sm text-slate-100">₹{parseFloat(user.growth_wallet || 0).toFixed(2)}</td>
                       <td className="px-5 py-4 text-sm text-yellow-400 font-bold">🪙 {user.coins}</td>
                       <td className="px-5 py-4 text-sm text-gray-500">
                         {new Date(user.created_at).toLocaleDateString("en-IN")}

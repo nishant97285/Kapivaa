@@ -11,6 +11,25 @@ const pool = mysql.createPool({
   connectionLimit: 10,
 });
 
+const ensureUserWalletColumns = async () => {
+  try {
+    const ensureColumn = async (column, definition) => {
+      const [rows] = await pool.query("SHOW COLUMNS FROM users LIKE ?", [column]);
+      if (rows.length === 0) {
+        await pool.query(`ALTER TABLE users ADD COLUMN ${definition}`);
+      }
+    };
+
+    await ensureColumn("topup_wallet", "topup_wallet DECIMAL(10,2) DEFAULT 0.00");
+    await ensureColumn("commission_wallet", "commission_wallet DECIMAL(10,2) DEFAULT 0.00");
+    await ensureColumn("growth_wallet", "growth_wallet DECIMAL(10,2) DEFAULT 0.00");
+  } catch (err) {
+    console.error("⚠️ Could not ensure user wallet columns:", err.message);
+  }
+};
+
+ensureUserWalletColumns();
+
 pool.getConnection()
   .then((conn) => {
     console.log("✅ MySQL Connected Successfully");

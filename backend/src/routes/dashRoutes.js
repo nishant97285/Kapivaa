@@ -6,6 +6,8 @@ import {
   getAllTeam,
   activateId,
   getActivationHistory,
+  getStakeHistory,
+  getWalletHistory,
   getAllIncome,
   getReferralIncome,
   requestWithdrawal,
@@ -26,6 +28,8 @@ router.get("/team/all",             authMiddleware, getAllTeam);
 // Activation
 router.post("/activate",            authMiddleware, activateId);
 router.get("/activations",          authMiddleware, getActivationHistory);
+router.get("/stake-history",        authMiddleware, getStakeHistory);
+router.get("/wallet-history",       authMiddleware, getWalletHistory);
 
 // Income
 router.get("/income",               authMiddleware, getAllIncome);

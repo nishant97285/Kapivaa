@@ -43,7 +43,7 @@ const menuItems = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, setIsOpen }) {
   const [openMenu, setOpenMenu] = useState(null);
   const navigate = useNavigate();
 
@@ -56,13 +56,23 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="fixed top-0 left-0 h-screen w-60 bg-gradient-to-b from-[#1a2744] to-[#1e3a5f] flex flex-col z-50 overflow-y-auto">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-6">
-        <div className="w-9 h-9 bg-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-lg">
-          K
+    <div className={`fixed top-0 left-0 h-screen w-60 bg-gradient-to-b from-[#1a2744] to-[#1e3a5f] flex flex-col z-50 overflow-y-auto transition-transform duration-300 lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      {/* Logo & Close Button */}
+      <div className="flex items-center justify-between px-5 py-6">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-lg leading-none">
+            K
+          </div>
+          <span className="text-white text-xl font-bold tracking-wide">Kapiva</span>
         </div>
-        <span className="text-white text-xl font-bold tracking-wide">Kapiva</span>
+        
+        {/* Mobile Close Button */}
+        <button 
+          onClick={() => setIsOpen(false)}
+          className="lg:hidden text-white/50 hover:text-white p-1"
+        >
+          ✕
+        </button>
       </div>
 
       {/* User Card — dynamic from localStorage */}

@@ -7,6 +7,8 @@ export const statusStyle = {
   Paid: "bg-emerald-100 text-emerald-700",
   Pending: "bg-amber-100 text-amber-700",
   Processing: "bg-blue-100 text-blue-700",
+  A: "bg-emerald-100 text-emerald-700",
+  P: "bg-amber-100 text-amber-700",
 };
 
 export const inputCls =
@@ -15,9 +17,9 @@ export const inputCls =
 // Page wrapper with title and subtitle
 export function PageWrapper({ title, subtitle, children }) {
   return (
-    <div className="bg-white rounded-2xl p-7 shadow-sm">
-      <h2 className="text-xl font-bold text-slate-800 mb-1">{title}</h2>
-      <p className="text-sm text-slate-400 mb-7">{subtitle}</p>
+    <div className="bg-white rounded-2xl p-4 md:p-7 shadow-sm border border-slate-100">
+      <h2 className="text-lg md:text-xl font-bold text-slate-800 mb-1">{title}</h2>
+      <p className="text-xs md:text-sm text-slate-400 mb-5 md:mb-7">{subtitle}</p>
       {children}
     </div>
   );

@@ -5,26 +5,31 @@ import bcrypt from "bcryptjs";
 
 export const getBalance = async (req, res) => {
   try {
-    // Get wallet balance
-    let [wallet] = await pool.query(
-      "SELECT balance FROM wallet WHERE user_id = ?",
+    const [userWallet] = await pool.query(
+      `SELECT 
+         COALESCE(topup_wallet, 0) AS topup_wallet,
+         COALESCE(commission_wallet, 0) AS commission_wallet,
+         COALESCE(growth_wallet, 0) AS growth_wallet
+       FROM users WHERE id = ?`,
       [req.user.id]
     );
 
-    // Create wallet if not exists
-    if (wallet.length === 0) {
-      await pool.query("INSERT INTO wallet (user_id, balance) VALUES (?, 0)", [req.user.id]);
-      wallet = [{ balance: 0 }];
+    if (userWallet.length === 0) {
+      return res.status(404).json({ message: "User not found." });
     }
 
-    // Get total withdrawn
-    const [[withdrawn]] = await pool.query(
+    const { topup_wallet, commission_wallet, growth_wallet } = userWallet[0];
+    const total_withdrawn = await pool.query(
       "SELECT COALESCE(SUM(amount), 0) as total FROM withdrawals WHERE user_id = ? AND status = 'Paid'",
       [req.user.id]
     );
 
+    const [[withdrawn]] = total_withdrawn;
+
     res.json({
-      wallet_balance: wallet[0].balance,
+      wallet_balance: topup_wallet,
+      commission_wallet,
+      growth_wallet,
       total_withdrawn: withdrawn.total,
     });
   } catch (err) {
@@ -105,40 +110,101 @@ export const getAllTeam = async (req, res) => {
 // ── ACTIVATION ───────────────────────────────────────────────────────────────
 
 export const activateId = async (req, res) => {
+  const connection = await pool.getConnection();
   try {
-    const { member_id, package_name, transaction_id } = req.body;
+    const { member_id, amount } = req.body;
 
-    if (!member_id || !package_name || !transaction_id)
+    if (!member_id || !amount)
       return res.status(400).json({ message: "All fields are required." });
 
-    // Package amount mapping
-    const packageAmounts = {
-      "Basic":    999,
-      "Silver":   2999,
-      "Gold":     5999,
-      "Platinum": 9999,
-    };
+    if (isNaN(amount) || amount <= 0)
+      return res.status(400).json({ message: "Invalid amount." });
 
-    const amount = packageAmounts[package_name];
-    if (!amount)
-      return res.status(400).json({ message: "Invalid package selected." });
-
-    // Check if member exists
-    const [member] = await pool.query(
-      "SELECT id FROM users WHERE referral_code = ?",
+    // 1. Check if target member exists
+    const [[targetUser]] = await connection.query(
+      "SELECT id, name, referred_by, referral_code FROM users WHERE referral_code = ?",
       [member_id]
     );
-    if (member.length === 0)
+    if (!targetUser)
       return res.status(404).json({ message: "Member ID not found." });
 
-    await pool.query(
-      "INSERT INTO activations (user_id, package_name, amount, transaction_id, status) VALUES (?, ?, ?, ?, ?)",
-      [member[0].id, package_name, amount, transaction_id, "Active"]
+    // 2. Check if logged-in user has enough balance in topup_wallet
+    const [[currentUser]] = await connection.query(
+      "SELECT topup_wallet, referral_code FROM users WHERE id = ?",
+      [req.user.id]
     );
 
+    if (!currentUser)
+      return res.status(404).json({ message: "Current user not found." });
+
+    if (currentUser.referral_code === member_id)
+      return res.status(400).json({ message: "You cannot activate your own ID through this form." });
+
+    if (currentUser.topup_wallet < amount)
+      return res.status(400).json({ message: "Insufficient balance in topup_wallet." });
+
+    await connection.beginTransaction();
+
+    // 3. Deduct from topup_wallet of the logged-in user
+    await connection.query(
+      "UPDATE users SET topup_wallet = topup_wallet - ? WHERE id = ?",
+      [amount, req.user.id]
+    );
+
+    // 4. Update target user status to Active (A)
+    await connection.query(
+      "UPDATE users SET status = 'A' WHERE id = ?",
+      [targetUser.id]
+    );
+
+    // 5. Insert into activations history
+    await connection.query(
+      "INSERT INTO activations (user_id, package_name, amount, status) VALUES (?, ?, ?, ?)",
+      [targetUser.id, 'Manual Topup', amount, "Active"]
+    );
+
+    // 6. Insert into max_stake_history
+    await connection.query(
+      "INSERT INTO max_stake_history (userid, toid, amount, status) VALUES (?, ?, ?, ?)",
+      [currentUser.referral_code, targetUser.referral_code, amount, "I"]
+    );
+
+    // 7. Direct Income Logic (10% to sponsor if Active)
+    if (targetUser.referred_by) {
+      const [[sponsor]] = await connection.query(
+        "SELECT id, referral_code, status FROM users WHERE referral_code = ?",
+        [targetUser.referred_by]
+      );
+
+      if (sponsor && sponsor.status === 'A') {
+        const bonusAmount = amount * 0.1;
+        // Credit to commission_wallet
+        await connection.query(
+          "UPDATE users SET commission_wallet = commission_wallet + ? WHERE id = ?",
+          [bonusAmount, sponsor.id]
+        );
+
+        // Log in income table
+        await connection.query(
+          "INSERT INTO income (user_id, type, from_user, amount, status) VALUES (?, ?, ?, ?, ?)",
+          [sponsor.id, 'Direct Income', member_id, bonusAmount, 'Paid']
+        );
+
+        // Log in max_wallet_history
+        await connection.query(
+          "INSERT INTO max_wallet_history_pending (userid, toid, amount, type, status) VALUES (?, ?, ?, ?, ?)",
+          [sponsor.referral_code, member_id, bonusAmount, 'Direct Income', 'A']
+        );
+      }
+    }
+
+    await connection.commit();
     res.status(201).json({ message: "ID activated successfully!" });
   } catch (err) {
+    if (connection) await connection.rollback();
     res.status(500).json({ message: err.message });
+  } finally {
+    if (connection) connection.release();
   }
 };
 
@@ -158,6 +224,54 @@ export const getActivationHistory = async (req, res) => {
       [req.user.id, req.user.id]
     );
 
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getStakeHistory = async (req, res) => {
+  try {
+    const [[currentUser]] = await pool.query(
+      "SELECT referral_code FROM users WHERE id = ?",
+      [req.user.id]
+    );
+
+    if (!currentUser) return res.status(404).json({ message: "User not found" });
+
+    const [rows] = await pool.query(
+      `SELECT m.*, u.name as member_name, ab.name as activated_by_name
+       FROM max_stake_history m
+       LEFT JOIN users u ON m.toid = u.referral_code
+       LEFT JOIN users ab ON m.userid = ab.referral_code
+       WHERE m.userid = ? OR m.toid = ?
+       ORDER BY m.created_at DESC`,
+      [currentUser.referral_code, currentUser.referral_code]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getWalletHistory = async (req, res) => {
+  try {
+    const [[currentUser]] = await pool.query(
+      "SELECT referral_code FROM users WHERE id = ?",
+      [req.user.id]
+    );
+
+    if (!currentUser) return res.status(404).json({ message: "User not found" });
+
+    const [rows] = await pool.query(
+      `SELECT m.*, u.name as member_name, to_u.name as target_name
+       FROM max_wallet_history m
+       LEFT JOIN users u ON m.userid = u.referral_code
+       LEFT JOIN users to_u ON m.toid = to_u.referral_code
+       WHERE m.userid = ? OR m.toid = ?
+       ORDER BY m.created_at DESC`,
+      [currentUser.referral_code, currentUser.referral_code]
+    );
     res.json(rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
